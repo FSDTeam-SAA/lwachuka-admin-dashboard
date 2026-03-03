@@ -1,31 +1,32 @@
-import { Users, Building2, CreditCard, TrendingUp } from "lucide-react"
-import { Card, CardContent } from "@/components/ui/card"
+import { Users, Building2, CreditCard, TrendingUp } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import Header from "@/components/share/Header";
 
 interface StatCardProps {
-  title: string
-  value: string
-  icon: React.ReactNode
+  title: string;
+  value: string;
+  icon: React.ReactNode;
 }
 
 function StatCard({ title, value, icon }: StatCardProps) {
   return (
     <Card className="flex-1 min-w-[220px] rounded-2xl border border-gray-100 shadow-[0px_4px_6px_0px_#0000001A] bg-white h-[139px]">
-  <CardContent className="p-6 flex flex-row items-center justify-between h-full">
-    {/* Left Text */}
-    <div className="flex flex-col justify-center gap-1">
-      <span className="text-sm text-gray-500 font-medium">{title}</span>
-      <span className="text-3xl font-bold text-[#1a2341] tracking-tight">
-        {value}
-      </span>
-    </div>
+      <CardContent className="p-6 flex flex-row items-center justify-between h-full">
+        {/* Left Text */}
+        <div className="flex flex-col justify-center gap-1">
+          <span className="text-sm text-gray-500 font-medium">{title}</span>
+          <span className="text-3xl font-bold text-[#1a2341] tracking-tight">
+            {value}
+          </span>
+        </div>
 
-    {/* Right Icon */}
-    <div className="flex items-center justify-center text-[#1a2341] opacity-80">
-      {icon}
-    </div>
-  </CardContent>
-</Card>
-  )
+        {/* Right Icon */}
+        <div className="flex items-center justify-center text-[#1a2341] opacity-80">
+          {icon}
+        </div>
+      </CardContent>
+    </Card>
+  );
 }
 
 const stats = [
@@ -49,14 +50,17 @@ const stats = [
     value: "342",
     icon: <TrendingUp size={28} strokeWidth={1.5} />,
   },
-]
+];
 
 export default function OverviewCard() {
   return (
-    <div className="flex flex-wrap gap-4">
-      {stats.map((stat) => (
-        <StatCard key={stat.title} {...stat} />
-      ))}
+    <div>
+      <Header title="Dashboard" subtitle="Welcome back 👋" />
+      <div className="flex flex-wrap gap-4 p-6">
+        {stats.map((stat) => (
+          <StatCard key={stat.title} {...stat} />
+        ))}
+      </div>
     </div>
-  )
+  );
 }

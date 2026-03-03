@@ -8,7 +8,7 @@ function page() {
   return (
     <div>
       <OverviewCard />
-      <div className="flex items-stretch gap-5 my-5">
+      <div className="flex items-stretch gap-5 my-5 px-6">
         <RecentActivity />
         <UserManagement />
       </div>

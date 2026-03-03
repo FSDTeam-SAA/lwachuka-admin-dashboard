@@ -31,7 +31,7 @@ const quickLinks: QuickLinkItem[] = [
 
 export default function QuickLinks() {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 p-6">
       {quickLinks.map((link) => (
         <Card
           key={link.title}
