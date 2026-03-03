@@ -3,15 +3,10 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import {
-  LayoutDashboard,
-  Grip,
-  ShoppingBasket,
-  Menu,
-  X,
-} from "lucide-react";
+import { LayoutDashboard, Grip, ShoppingBasket, Menu, X } from "lucide-react";
 import { LogoutModal } from "../Dialogs/LogoutModal";
 import { useState } from "react";
+import Image from "next/image";
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
@@ -57,12 +52,20 @@ export function Sidebar() {
           "w-[280px] lg:w-[300px] ",
           isMobileMenuOpen
             ? "translate-x-0"
-            : "-translate-x-full lg:translate-x-0"
+            : "-translate-x-full lg:translate-x-0",
         )}
       >
         {/* Logo + Close */}
         <div className="h-[80px] flex items-center justify-center relative px-4">
-          <h1 className="text-green-500 text-2xl font-bold">Logo</h1>
+          <div>
+            <Image
+              src="/images/logo.png"
+              alt="Logo"
+              width={120}
+              height={120}
+              className="object-contain"
+            />
+          </div>
 
           {isMobileMenuOpen && (
             <button
@@ -90,7 +93,7 @@ export function Sidebar() {
                   "flex items-center gap-3 !rounded-[8px] px-4 py-3.5 text-sm transition-all",
                   isActive
                     ? "bg-[#061F3D] text-white font-semibold shadow-[0px_4px_6px_0px_#F57E281A]"
-                    : "text-[#7D7D7D]"
+                    : "text-[#7D7D7D]",
                 )}
               >
                 <item.icon className="h-5 w-5 flex-shrink-0 text-[18px]" />
