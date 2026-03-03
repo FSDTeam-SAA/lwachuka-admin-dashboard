@@ -1,17 +1,32 @@
-import Header from "@/components/share/Header";
-import { Sidebar } from "@/components/share/Sidebar";
-import React from "react";
+"use client";
 
-function layout({ children }: { children: React.ReactNode }) {
+import React from "react";
+import { Sidebar } from "@/components/share/Sidebar";
+import Header from "@/components/share/Header";
+
+export default function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <>
-      <Header />
-      <div className="flex">
-        <Sidebar />
-        <div className="w-full mt-[80px] p-6">{children}</div>
+    <div className="flex h-screen bg-gray-100 overflow-hidden">
+      {/* Sidebar */}
+      <Sidebar />
+
+      {/* Right Section */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Header */}
+        <Header
+          title="Dashboard"
+          subtitle="Welcome back 👋"
+        />
+
+        {/* Page Content */}
+        <main className="flex-1 overflow-y-auto p-6 bg-[#F8F9FA]">
+          {children}
+        </main>
       </div>
-    </>
+    </div>
   );
 }
-
-export default layout;

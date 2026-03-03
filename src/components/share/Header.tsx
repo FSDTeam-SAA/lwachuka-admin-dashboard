@@ -1,11 +1,29 @@
 "use client";
-
-export default function Header() {
-  return (
-    <div className="fixed top-0 left-0 right-0 z-50 flex h-[80px] items-center justify-between px-6 bg-[#212121] shadow-md">
-      <div className="flex items-center space-x-2"></div>
-
-      <div className="relative flex items-center space-x-3"></div>
-    </div>
-  );
+import React from "react";
+interface HeaderProps {
+  title?: string;
+  subtitle?: string;
+  userName?: string;
+  userRole?: string;
+  avatarUrl?: string;
+  onLogout?: () => void;
+  notificationCount?: number;
 }
+
+const Header: React.FC<HeaderProps> = ({
+  title = "Dashboard",
+  subtitle,
+}) => {
+  return (
+    <header className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-30">
+      <div className="w-full px-6 h-[100px] flex items-center justify-between">
+        <div className="ml-10 sm:ml-0">
+          <h1 className="text-xl font-bold text-gray-900">{title}</h1>
+          {subtitle && <p className="text-sm text-gray-500">{subtitle}</p>}
+        </div>
+      </div>
+    </header>
+  );
+};
+
+export default Header;
