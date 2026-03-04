@@ -374,5 +374,5 @@ export default function PropertyListings() {
         </div>
       </div>
     </div>
-  );
+  ); 
 }
