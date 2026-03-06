@@ -23,8 +23,8 @@ export function LogoutModal() {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <div className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-300 transition-all duration-200 hover:bg-slate-600/50 hover:text-white cursor-pointer">
-          <LogOut className="h-5 w-5" />
+        <div className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-red-600 transition-all duration-200 cursor-pointer">
+          <LogOut className="h-5 w-5 text-red-600" />
           <span className="font-normal text-base leading-none">Log Out</span>
         </div>
       </DialogTrigger>

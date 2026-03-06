@@ -3,21 +3,29 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { LayoutDashboard, Grip, ShoppingBasket, Menu, X } from "lucide-react";
+import { LayoutDashboard, Menu, X, UsersRound, UserCheck, Store, Building2, Megaphone, Banknote, BellDot, CreditCard, ChartColumn, Shield, Settings } from "lucide-react";
 import { LogoutModal } from "../Dialogs/LogoutModal";
 import { useState } from "react";
 import Image from "next/image";
 
 const navigation = [
-  { name: "Dashboard", href: "/", icon: LayoutDashboard },
+  { name: "Dashboard Overview", href: "/", icon: LayoutDashboard },
   {
-    name: "Requested Products",
-    href: "/requested-product",
-    icon: LayoutDashboard,
+    name: "User Management",
+    href: "/user-management", 
+    icon: UsersRound ,
   },
-  { name: "Main Category", href: "/category", icon: Grip },
-  { name: "Sub Category", href: "/sub-category", icon: ShoppingBasket },
-  { name: "Seller Categories", href: "/sr-category", icon: ShoppingBasket },
+  { name: "Agent Management", href: "/agent-management", icon: UserCheck },
+  { name: "Vendor Management", href: "/vendor-management", icon: Store  },
+  { name: "Property Listings", href: "/property-listings", icon: Building2 },
+  { name: "Advertisement Management", href: "/advertisement-management", icon: Megaphone },
+  { name: "Paid Listing", href: "/paid-listings", icon: Banknote },
+  { name: "Subscription Management", href: "/subscription-management", icon: BellDot },
+  { name: "Payment Management", href: "/payment-management", icon: CreditCard },
+  { name: "Analytics & Reports", href: "/analytics-reports", icon: ChartColumn },
+  { name: "Security & Audit Logs", href: "/security-audit", icon: Shield },
+  { name: "Settings", href: "/settings", icon: Settings },
+
 ];
 
 export function Sidebar() {
@@ -49,7 +57,7 @@ export function Sidebar() {
         className={cn(
           "fixed lg:static top-0 left-0 z-50",
           "h-screen flex flex-col bg-white transition-transform duration-300 shadow-[0px_4px_6px_0px_#0000001A]",
-          "w-[280px] lg:w-[300px] ",
+          "w-[280px] lg:w-[340px] ",
           isMobileMenuOpen
             ? "translate-x-0"
             : "-translate-x-full lg:translate-x-0",
@@ -104,7 +112,7 @@ export function Sidebar() {
         </nav>
 
         {/* Logout */}
-        <div className="p-4 border-t border-slate-700">
+        <div className="p-4">
           <LogoutModal />
         </div>
       </aside>
