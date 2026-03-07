@@ -11,146 +11,64 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import Header from "@/components/share/Header";
-import { AgentManagementModal } from "@/components/Dialogs/AgentManagementModal";
+import { UserManagmentModal } from "@/components/Dialogs/UserManagmentModal";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useSession } from "next-auth/react";
+import { Skeleton } from "@/components/ui/skeleton";
 
-type Status = "Active" | "Pending" | "Blocked";
+type Status = "active" | "pending" | "block";
 
-interface Agent {
-  id: number;
-  name: string;
+interface ApiUser {
+  _id: string;
+  firstName?: string;
+  lastName?: string;
   email: string;
-  phone: string;
-  properties: number;
-  commission: string;
+  role: string;
+  createdAt: string;
   status: Status;
 }
 
-const allAgents: Agent[] = [
-  {
-    id: 1,
-    name: "John Doe",
-    email: "john@example.com",
-    phone: "+1234567890",
-    properties: 3,
-    commission: "$12,500",
-    status: "Active",
-  },
-  {
-    id: 2,
-    name: "Jane Smith",
-    email: "jane@example.com",
-    phone: "+1234567890",
-    properties: 4,
-    commission: "$12,500",
-    status: "Active",
-  },
-  {
-    id: 3,
-    name: "Bob Johnson",
-    email: "bob@example.com",
-    phone: "+1234567890",
-    properties: 2,
-    commission: "$12,500",
-    status: "Pending",
-  },
-  {
-    id: 4,
-    name: "Alice Brown",
-    email: "alice@example.com",
-    phone: "+1234567890",
-    properties: 1,
-    commission: "$12,500",
-    status: "Active",
-  },
-  {
-    id: 5,
-    name: "Charlie Lee",
-    email: "charlie@example.com",
-    phone: "+1234567890",
-    properties: 2,
-    commission: "$12,500",
-    status: "Active",
-  },
-  {
-    id: 6,
-    name: "Diana Prince",
-    email: "diana@example.com",
-    phone: "+1234567890",
-    properties: 3,
-    commission: "$12,500",
-    status: "Blocked",
-  },
-  {
-    id: 7,
-    name: "Ethan Hunt",
-    email: "ethan@example.com",
-    phone: "+1234567890",
-    properties: 5,
-    commission: "$15,000",
-    status: "Active",
-  },
-  {
-    id: 8,
-    name: "Fiona Green",
-    email: "fiona@example.com",
-    phone: "+1234567890",
-    properties: 2,
-    commission: "$9,800",
-    status: "Pending",
-  },
-  {
-    id: 9,
-    name: "George King",
-    email: "george@example.com",
-    phone: "+1234567890",
-    properties: 6,
-    commission: "$18,200",
-    status: "Active",
-  },
-  {
-    id: 10,
-    name: "Helen Troy",
-    email: "helen@example.com",
-    phone: "+1234567890",
-    properties: 1,
-    commission: "$5,500",
-    status: "Blocked",
-  },
-  {
-    id: 11,
-    name: "Ivan Drago",
-    email: "ivan@example.com",
-    phone: "+1234567890",
-    properties: 4,
-    commission: "$13,400",
-    status: "Active",
-  },
-  {
-    id: 12,
-    name: "Julia Roberts",
-    email: "julia@example.com",
-    phone: "+1234567890",
-    properties: 3,
-    commission: "$11,700",
-    status: "Active",
-  },
-];
+interface ApiResponse {
+  data: ApiUser[];
+}
 
 const PAGE_SIZE = 5;
 
 const statusStyles: Record<Status, string> = {
-  Active: "bg-green-50  text-green-600  border border-green-200",
-  Pending: "bg-yellow-50 text-yellow-600 border border-yellow-200",
-  Blocked: "bg-red-50    text-red-400    border border-red-200",
+  active: "bg-green-50 text-green-600 border border-green-200",
+  pending: "bg-yellow-50 text-yellow-600 border border-yellow-200",
+  block: "bg-red-50 text-red-400 border border-red-200",
 };
 
 export default function AgentManagement() {
   const [currentPage, setCurrentPage] = useState(1);
-  const totalPages = Math.ceil(allAgents.length / PAGE_SIZE);
+  const { data: session } = useSession();
+  const TOKEN = session?.user?.accessToken;
+  const queryClient = useQueryClient();
 
-  const paginated = allAgents.slice(
+  // Fetch users
+  const { data, isLoading } = useQuery({
+    queryKey: ["all-user"],
+    enabled: !!TOKEN,
+    queryFn: async () => {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/user/all-users?role=agent`,
+        {
+          method: "GET",
+          headers: { Authorization: `Bearer ${TOKEN}` },
+        }
+      );
+
+      if (!res.ok) throw new Error("Failed to fetch users");
+      return res.json();
+    },
+  });
+
+  const users: ApiUser[] = data?.data || [];
+  const totalPages = Math.ceil(users.length / PAGE_SIZE);
+  const paginated = users.slice(
     (currentPage - 1) * PAGE_SIZE,
-    currentPage * PAGE_SIZE,
+    currentPage * PAGE_SIZE
   );
 
   const getPageNumbers = (): (number | "...")[] => {
@@ -162,149 +80,189 @@ export default function AgentManagement() {
     return [1, "...", currentPage, "...", totalPages];
   };
 
+  // Block user mutation
+  const blockMutation = useMutation({
+    mutationFn: async (userId: string) => {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/user/${userId}`,
+        {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${TOKEN}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ status: "block" }),
+        }
+      );
+
+      if (!res.ok) throw new Error("Failed to block user");
+      return res.json();
+    },
+    onSuccess: (_, userId) => {
+      queryClient.setQueryData(
+        ["all-user"],
+        (oldData: ApiResponse | undefined) => {
+          if (!oldData) return oldData;
+          return {
+            ...oldData,
+            data: oldData.data.map((u: ApiUser) =>
+              u._id === userId ? { ...u, status: "block" } : u
+            ),
+          };
+        }
+      );
+    },
+  });
+
+  // Approve user mutation
+  const approveMutation = useMutation({
+    mutationFn: async (userId: string) => {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/user/${userId}`,
+        {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${TOKEN}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ status: "active" }),
+        }
+      );
+
+      if (!res.ok) throw new Error("Failed to approve user");
+      return res.json();
+    },
+    onSuccess: (_, userId) => {
+      queryClient.setQueryData(
+        ["all-user"],
+        (oldData: ApiResponse | undefined) => {
+          if (!oldData) return oldData;
+          return {
+            ...oldData,
+            data: oldData.data.map((u: ApiUser) =>
+              u._id === userId ? { ...u, status: "active" } : u
+            ),
+          };
+        }
+      );
+    },
+  });
+
   return (
     <div>
-      <Header
-        title="Agent Management"
-        subtitle="Manage all registered agents"
-      />
+      <Header title="User Management" subtitle="Manage all platform users" />
+
       <div className="p-6">
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           <Table>
             <TableHeader>
               <TableRow className="bg-gray-50 hover:bg-gray-50">
-                <TableHead className="text-xs font-medium text-gray-500 py-3 px-6">
-                  Name
-                </TableHead>
-                <TableHead className="text-xs font-medium text-gray-500 py-3">
-                  Email
-                </TableHead>
-                <TableHead className="text-xs font-medium text-gray-500 py-3">
-                  Phone
-                </TableHead>
-                <TableHead className="text-xs font-medium text-gray-500 py-3 text-center">
-                  Properties
-                </TableHead>
-                <TableHead className="text-xs font-medium text-gray-500 py-3">
-                  Commission
-                </TableHead>
-                <TableHead className="text-xs font-medium text-gray-500 py-3 text-center">
-                  Status
-                </TableHead>
-                <TableHead className="text-xs font-medium text-gray-500 py-3 text-center pr-6">
-                  Action
-                </TableHead>
+                <TableHead className="text-xs font-medium text-gray-500 py-3 px-6">Name</TableHead>
+                <TableHead className="text-xs font-medium text-gray-500 py-3">Email</TableHead>
+                <TableHead className="text-xs font-medium text-gray-500 py-3">Role</TableHead>
+                <TableHead className="text-xs font-medium text-gray-500 py-3">Joined</TableHead>
+                <TableHead className="text-xs font-medium text-gray-500 py-3 text-center">Status</TableHead>
+                <TableHead className="text-xs font-medium text-gray-500 py-3 text-center pr-6">Action</TableHead>
               </TableRow>
             </TableHeader>
+
             <TableBody>
-              {paginated.map((agent) => (
-                <TableRow
-                  key={agent.id}
-                  className="border-t border-gray-100 hover:bg-gray-50/50 transition-colors"
-                >
-                  <TableCell className="py-4 px-6 text-sm font-medium text-[#1a2341]">
-                    {agent.name}
-                  </TableCell>
-                  <TableCell className="py-4 text-sm text-gray-500">
-                    {agent.email}
-                  </TableCell>
-                  <TableCell className="py-4 text-sm text-gray-500">
-                    {agent.phone}
-                  </TableCell>
-                  <TableCell className="py-4 text-sm text-gray-500 text-center">
-                    {agent.properties}
-                  </TableCell>
-                  <TableCell className="py-4 text-sm text-gray-500">
-                    {agent.commission}
-                  </TableCell>
-                  <TableCell className="py-4 text-center">
-                    <span
-                      className={`inline-block px-4 py-1 rounded-md text-xs font-medium min-w-[80px] ${statusStyles[agent.status]}`}
-                    >
-                      {agent.status}
-                    </span>
-                  </TableCell>
-                  <TableCell className="py-4 pr-6">
-                    <div className="flex items-center justify-center gap-2">
-                      {/* <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-8 px-3 border-orange-300 text-orange-400 hover:bg-orange-50 hover:text-orange-500 text-xs rounded-md"
-                      >
-                        View
-                      </Button> */}
-                      <AgentManagementModal />
-                      <Button
-                        size="sm"
-                        className="h-8 px-3 bg-[#1a2341] hover:bg-[#2a3451] text-white text-xs rounded-md"
-                      >
-                        Approve
-                      </Button>
-                      <Button
-                        size="sm"
-                        className="h-8 px-3 bg-red-500 hover:bg-red-600 text-white text-xs rounded-md"
-                      >
-                        Block
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
+              {isLoading
+                ? Array.from({ length: PAGE_SIZE }).map((_, idx) => (
+                    <TableRow key={idx} className="border-t border-gray-100">
+                      <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-40" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-28" /></TableCell>
+                      <TableCell className="text-center"><Skeleton className="h-4 w-20 mx-auto" /></TableCell>
+                      <TableCell className="text-center"><Skeleton className="h-8 w-20 mx-auto rounded-md" /></TableCell>
+                    </TableRow>
+                  ))
+                : paginated.map((user) => {
+                    const fullName = `${user.firstName || ""} ${user.lastName || ""}`;
+                    const joinedDate = new Date(user.createdAt).toISOString().split("T")[0];
+                    const status: Status = user.status || "pending";
+
+                    return (
+                      <TableRow key={user._id} className="border-t border-gray-100 hover:bg-gray-50/50 transition-colors">
+                        <TableCell className="py-4 px-6 text-sm font-medium text-[#1a2341]">{fullName}</TableCell>
+                        <TableCell className="py-4 text-sm text-gray-500">{user.email}</TableCell>
+                        <TableCell className="py-4 text-sm text-gray-500">{user.role}</TableCell>
+                        <TableCell className="py-4 text-sm text-gray-500">{joinedDate}</TableCell>
+                        <TableCell className="py-4 text-center">
+                          <span className={`inline-block px-4 rounded-md text-xs font-medium min-w-[80px] py-2 ${statusStyles[status]}`}>
+                            {status}
+                          </span>
+                        </TableCell>
+                        <TableCell className="py-4 pr-6">
+                          <div className="flex items-center justify-center gap-2">
+                            <UserManagmentModal id={user._id} />
+
+                            <Button
+                              size="sm"
+                              className="h-8 px-3 bg-[#1a2341] hover:bg-[#2a3451] text-white text-xs rounded-md"
+                              onClick={() => approveMutation.mutate(user._id)}
+                              disabled={status === "active" || approveMutation.isPending}
+                            >
+                              Approve
+                            </Button>
+
+                            <Button
+                              size="sm"
+                              className="h-8 px-3 bg-red-500 hover:bg-red-600 text-white text-xs rounded-md"
+                              onClick={() => blockMutation.mutate(user._id)}
+                              disabled={status === "block" || blockMutation.isPending}
+                            >
+                              {status === "block" ? "Blocked" : "Block"}
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
             </TableBody>
           </Table>
 
-          {/* Pagination */}
-          <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100">
-            <span className="text-sm text-gray-400">
-              Showing {(currentPage - 1) * PAGE_SIZE + 1} to{" "}
-              {Math.min(currentPage * PAGE_SIZE, allAgents.length)} of{" "}
-              {allAgents.length} results
-            </span>
+          {users.length > PAGE_SIZE && !isLoading && (
+            <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100">
+              <span className="text-sm text-gray-400">
+                Showing {(currentPage - 1) * PAGE_SIZE + 1} to {Math.min(currentPage * PAGE_SIZE, users.length)} of {users.length} results
+              </span>
 
-            <div className="flex items-center gap-1">
-              <button
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-                className="h-8 w-8 flex items-center justify-center rounded-md border border-gray-200 text-gray-400 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors text-sm"
-              >
-                ‹
-              </button>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="h-8 w-8 flex items-center justify-center rounded-md border border-gray-200 text-gray-400 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors text-sm"
+                >
+                  ‹
+                </button>
 
-              {getPageNumbers().map((page, idx) =>
-                page === "..." ? (
-                  <span
-                    key={`ellipsis-${idx}`}
-                    className="h-8 w-8 flex items-center justify-center text-sm text-gray-400"
-                  >
-                    ...
-                  </span>
-                ) : (
-                  <button
-                    key={page}
-                    onClick={() => setCurrentPage(Number(page))}
-                    className={`h-8 w-8 flex items-center justify-center rounded-md text-sm font-medium transition-colors border
-                  ${
-                    currentPage === page
-                      ? "bg-[#1a2341] text-white border-[#1a2341]"
-                      : "border-gray-200 text-gray-500 hover:bg-gray-50"
-                  }`}
-                  >
-                    {page}
-                  </button>
-                ),
-              )}
+                {getPageNumbers().map((page, idx) =>
+                  page === "..." ? (
+                    <span key={`ellipsis-${idx}`} className="h-8 w-8 flex items-center justify-center text-sm text-gray-400">...</span>
+                  ) : (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(Number(page))}
+                      className={`h-8 w-8 flex items-center justify-center rounded-md text-sm font-medium transition-colors border
+                        ${currentPage === page ? "bg-[#1a2341] text-white border-[#1a2341]" : "border-gray-200 text-gray-500 hover:bg-gray-50"}`}
+                    >
+                      {page}
+                    </button>
+                  )
+                )}
 
-              <button
-                onClick={() =>
-                  setCurrentPage((p) => Math.min(totalPages, p + 1))
-                }
-                disabled={currentPage === totalPages}
-                className="h-8 w-8 flex items-center justify-center rounded-md border border-gray-200 text-gray-400 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors text-sm"
-              >
-                ›
-              </button>
+                <button
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="h-8 w-8 flex items-center justify-center rounded-md border border-gray-200 text-gray-400 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors text-sm"
+                >
+                  ›
+                </button>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>
