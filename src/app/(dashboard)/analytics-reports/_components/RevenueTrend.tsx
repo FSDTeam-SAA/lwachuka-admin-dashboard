@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import {
   LineChart,
@@ -9,20 +9,14 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
-} from "recharts"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+} from "recharts";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-const data = [
-  { month: "Jan", user: 850  },
-  { month: "Feb", user: 970  },
-  { month: "Mar", user: 1100 },
-  { month: "Apr", user: 1220 },
-  { month: "May", user: 1350 },
-  { month: "Jun", user: 1480 },
-  { month: "Jul", user: 1750 },
-]
+interface Props {
+  data: { month: string; revenue: number }[];
+}
 
-export default function RevenueTrend() {
+export default function RevenueTrend({ data }: Props) {
   return (
     <Card className="rounded-2xl border border-gray-100 shadow-sm bg-white">
       <CardHeader className="pb-2 pt-5 px-6">
@@ -36,12 +30,7 @@ export default function RevenueTrend() {
             data={data}
             margin={{ top: 10, right: 20, left: 0, bottom: 0 }}
           >
-            <CartesianGrid
-              strokeDasharray="4 4"
-              stroke="#e5e7eb"
-              vertical={true}
-              horizontal={true}
-            />
+            <CartesianGrid strokeDasharray="4 4" stroke="#e5e7eb" />
             <XAxis
               dataKey="month"
               tick={{ fontSize: 12, fill: "#9ca3af" }}
@@ -52,8 +41,6 @@ export default function RevenueTrend() {
               tick={{ fontSize: 12, fill: "#9ca3af" }}
               axisLine={false}
               tickLine={false}
-              domain={[0, 1800]}
-              ticks={[0, 450, 900, 1350, 1800]}
             />
             <Tooltip
               contentStyle={{
@@ -69,7 +56,7 @@ export default function RevenueTrend() {
             />
             <Line
               type="linear"
-              dataKey="user"
+              dataKey="revenue"
               stroke="#1a2341"
               strokeWidth={2}
               dot={{ r: 4, fill: "#1a2341", strokeWidth: 0 }}
@@ -79,5 +66,5 @@ export default function RevenueTrend() {
         </ResponsiveContainer>
       </CardContent>
     </Card>
-  )
+  );
 }

@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import {
   BarChart,
@@ -8,24 +8,19 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-} from "recharts"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+} from "recharts";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-const data = [
-  { month: "Jan", listings: 480  },
-  { month: "Feb", listings: 1400 },
-  { month: "Mar", listings: 720  },
-  { month: "Apr", listings: 1820 },
-  { month: "May", listings: 950  },
-  { month: "Jun", listings: 1480 },
-]
+interface Props {
+  data: { type: string; total: number }[];
+}
 
-export default function PropertybyTypeBar() {
+export default function PropertybyTypeBar({ data }: Props) {
   return (
     <Card className="rounded-2xl border border-gray-100 shadow-sm bg-white">
       <CardHeader className="pb-2 pt-5 px-6">
         <CardTitle className="text-base font-semibold text-[#1a2341]">
-          Property Listings Growth
+          Properties by Type
         </CardTitle>
       </CardHeader>
       <CardContent className="px-4 pb-5">
@@ -35,14 +30,9 @@ export default function PropertybyTypeBar() {
             margin={{ top: 10, right: 20, left: 0, bottom: 0 }}
             barCategoryGap="35%"
           >
-            <CartesianGrid
-              strokeDasharray="4 4"
-              stroke="#e5e7eb"
-              vertical={true}
-              horizontal={true}
-            />
+            <CartesianGrid strokeDasharray="4 4" stroke="#e5e7eb" />
             <XAxis
-              dataKey="month"
+              dataKey="type"
               tick={{ fontSize: 12, fill: "#9ca3af" }}
               axisLine={false}
               tickLine={false}
@@ -51,8 +41,6 @@ export default function PropertybyTypeBar() {
               tick={{ fontSize: 12, fill: "#9ca3af" }}
               axisLine={false}
               tickLine={false}
-              domain={[0, 2250]}
-              ticks={[0, 450, 900, 1350, 1800, 2250]}
             />
             <Tooltip
               contentStyle={{
@@ -62,14 +50,10 @@ export default function PropertybyTypeBar() {
               }}
               cursor={{ fill: "#f3f4f6" }}
             />
-            <Bar
-              dataKey="listings"
-              fill="#1a2341"
-              radius={[3, 3, 0, 0]}
-            />
+            <Bar dataKey="total" fill="#1a2341" radius={[3, 3, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </CardContent>
     </Card>
-  )
+  );
 }
