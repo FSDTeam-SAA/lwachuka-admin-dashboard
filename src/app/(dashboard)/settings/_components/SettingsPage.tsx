@@ -8,12 +8,12 @@ const settingsItems = [
   {
     icon: <User size={15} strokeWidth={1.5} className="text-[#1a2341]" />,
     label: "Profile",
-    href: "/settings/profile",
+    href: "/settings/profileinfo",
   },
   {
     icon: <KeyRound size={15} strokeWidth={1.5} className="text-[#1a2341]" />,
     label: "Password",
-    href: "/settings/password",
+    href: "/settings/change-password",
   },
 ]
 
