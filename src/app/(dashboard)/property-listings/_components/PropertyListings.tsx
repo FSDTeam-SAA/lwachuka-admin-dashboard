@@ -171,7 +171,7 @@ export default function PropertyListings() {
               <SelectValue placeholder="All Status" />
             </SelectTrigger>
             <SelectContent align="end">
-              {(["All Status", "Approved", "Pending", "Rejected"] as FilterStatus[]).map(
+              {(["All Status", "approved", "pending", "rejected"] as FilterStatus[]).map(
                 (s) => (
                   <SelectItem key={s} value={s} className="text-sm cursor-pointer">
                     {s}

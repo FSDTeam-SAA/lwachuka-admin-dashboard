@@ -12,160 +12,46 @@ import {
 import Image from "next/image";
 import Header from "@/components/share/Header";
 import { AdvertisementManagementmodal } from "@/components/Dialogs/AdvertisementManagementmodal";
+import { useQuery } from "@tanstack/react-query";
 
 type Status = "Active" | "Paused" | "Expired";
 
 interface Campaign {
-  id: number;
-  image: string;
-  name: string;
-  type: string;
-  impressions: string;
+  _id: string;
+  companyName: string;
+  advertisementType: string;
+  uploadMedia: string;
   startDate: string;
   endDate: string;
-  status: Status;
+  paymentStatus: string;
+  compaingBudget:number
 }
-
-const allCampaigns: Campaign[] = [
-  {
-    id: 1,
-    image: "/images/cam.jpg",
-    name: "Premium Moving Services",
-    type: "Banner",
-    impressions: "3,421",
-    startDate: "2026-02-01",
-    endDate: "2026-03-01",
-    status: "Active",
-  },
-  {
-    id: 2,
-    image: "/images/cam.jpg",
-    name: "Premium Moving Services",
-    type: "Banner",
-    impressions: "3,421",
-    startDate: "2026-03-12",
-    endDate: "2026-03-12",
-    status: "Active",
-  },
-  {
-    id: 3,
-    image: "/images/cam.jpg",
-    name: "Premium Moving Services",
-    type: "Banner",
-    impressions: "3,421",
-    startDate: "2026-03-12",
-    endDate: "2026-03-12",
-    status: "Paused",
-  },
-  {
-    id: 4,
-    image: "/images/cam.jpg",
-    name: "Premium Moving Services",
-    type: "Banner",
-    impressions: "3,421",
-    startDate: "2026-03-12",
-    endDate: "2026-03-12",
-    status: "Active",
-  },
-  {
-    id: 5,
-    image: "/images/cam.jpg",
-    name: "Premium Moving Services",
-    type: "Banner",
-    impressions: "3,421",
-    startDate: "2026-03-12",
-    endDate: "2026-03-12",
-    status: "Active",
-  },
-  {
-    id: 6,
-    image: "/images/cam.jpg",
-    name: "Premium Moving Services",
-    type: "Banner",
-    impressions: "3,421",
-    startDate: "2026-03-12",
-    endDate: "2026-03-12",
-    status: "Expired",
-  },
-  {
-    id: 7,
-    image: "/images/cam.jpg",
-    name: "Home Renovation Experts",
-    type: "Popup",
-    impressions: "5,102",
-    startDate: "2026-01-10",
-    endDate: "2026-02-10",
-    status: "Expired",
-  },
-  {
-    id: 8,
-    image: "/images/cam.jpg",
-    name: "Luxury Real Estate Deals",
-    type: "Banner",
-    impressions: "8,750",
-    startDate: "2026-02-15",
-    endDate: "2026-04-15",
-    status: "Active",
-  },
-  {
-    id: 9,
-    image: "/images/cam.jpg",
-    name: "Fast Property Sales",
-    type: "Video",
-    impressions: "2,310",
-    startDate: "2026-03-01",
-    endDate: "2026-03-31",
-    status: "Paused",
-  },
-  {
-    id: 10,
-    image: "/images/cam.jpg",
-    name: "Affordable Movers Co.",
-    type: "Banner",
-    impressions: "1,980",
-    startDate: "2026-02-20",
-    endDate: "2026-03-20",
-    status: "Expired",
-  },
-  {
-    id: 11,
-    image: "/images/cam.jpg",
-    name: "Elite Property Managers",
-    type: "Popup",
-    impressions: "6,430",
-    startDate: "2026-03-05",
-    endDate: "2026-05-05",
-    status: "Active",
-  },
-  {
-    id: 12,
-    image: "/images/cam.jpg",
-    name: "Quick Home Staging",
-    type: "Banner",
-    impressions: "4,100",
-    startDate: "2026-03-10",
-    endDate: "2026-04-10",
-    status: "Active",
-  },
-];
 
 const PAGE_SIZE = 5;
 
 const statusStyles: Record<Status, string> = {
-  Active: "bg-green-50  text-green-600  border border-green-200",
+  Active: "bg-green-50 text-green-600 border border-green-200",
   Paused: "bg-yellow-50 text-yellow-600 border border-yellow-200",
-  Expired: "bg-gray-100  text-gray-500   border border-gray-200",
+  Expired: "bg-gray-100 text-gray-500 border border-gray-200",
 };
 
 export default function AdvertisementManagement() {
   const [currentPage, setCurrentPage] = useState(1);
-  const totalPages = Math.ceil(allCampaigns.length / PAGE_SIZE);
 
-  const paginated = allCampaigns.slice(
-    (currentPage - 1) * PAGE_SIZE,
-    currentPage * PAGE_SIZE,
-  );
+  const { data, isLoading } = useQuery({
+    queryKey: ["all-adv", currentPage],
+    queryFn: async () => {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/advertisement?page=${currentPage}&limit=${PAGE_SIZE}`
+      );
+      if (!res.ok) throw new Error("Failed to fetch advertisements");
+      const json = await res.json();
+      return json.data as Campaign[];
+    },
+  });
 
+  const totalPages = Math.ceil((data?.length || 0) / PAGE_SIZE);
+ 
   const getPageNumbers = (): (number | "...")[] => {
     if (totalPages <= 5)
       return Array.from({ length: totalPages }, (_, i) => i + 1);
@@ -174,6 +60,19 @@ export default function AdvertisementManagement() {
       return [1, "...", totalPages - 2, totalPages - 1, totalPages];
     return [1, "...", currentPage, "...", totalPages];
   };
+
+  const mapStatus = (paymentStatus: string): Status => {
+    switch (paymentStatus.toLowerCase()) {
+      case "paid":
+        return "Active";
+      case "pending":
+        return "Paused";
+      default:
+        return "Expired";
+    }
+  };
+
+  if (isLoading) return <div className="p-6 text-center">Loading...</div>;
 
   return (
     <div>
@@ -207,57 +106,52 @@ export default function AdvertisementManagement() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {paginated.map((campaign) => (
+              {data?.map((campaign) => (
                 <TableRow
-                  key={campaign.id}
+                  key={campaign._id}
                   className="border-t border-gray-100 hover:bg-gray-50/50 transition-colors"
                 >
                   <TableCell className="py-3 px-6">
                     <div className="flex items-center gap-3">
                       <div className="w-12 h-12 rounded-md overflow-hidden border border-gray-100 flex-shrink-0 bg-gray-100">
                         <Image
-                          src={campaign.image}
-                          alt={campaign.name}
+                          src={campaign.uploadMedia}
+                          alt={campaign.companyName}
                           width={48}
                           height={48}
                           className="w-full h-full object-cover"
                         />
                       </div>
                       <span className="text-sm font-medium text-[#1a2341]">
-                        {campaign.name}
+                        {campaign.companyName}
                       </span>
                     </div>
                   </TableCell>
                   <TableCell className="py-3 text-sm text-gray-500">
-                    {campaign.type}
+                    {campaign.advertisementType}
                   </TableCell>
                   <TableCell className="py-3 text-sm text-gray-500">
-                    {campaign.impressions}
+                  
+                    {String(campaign?.compaingBudget)}
                   </TableCell>
                   <TableCell className="py-3 text-sm text-gray-500">
-                    {campaign.startDate}
+                    {new Date(campaign.startDate).toLocaleDateString()}
                   </TableCell>
                   <TableCell className="py-3 text-sm text-gray-500">
-                    {campaign.endDate}
+                    {new Date(campaign.endDate).toLocaleDateString()}
                   </TableCell>
                   <TableCell className="py-3 text-center">
                     <span
-                      className={`inline-block px-4 py-1 rounded-md text-xs font-medium min-w-[80px] ${statusStyles[campaign.status]}`}
+                      className={`inline-block px-4 py-1 rounded-md text-xs font-medium min-w-[80px] ${
+                        statusStyles[mapStatus(campaign.paymentStatus)]
+                      }`}
                     >
-                      {campaign.status}
+                      {mapStatus(campaign.paymentStatus)}
                     </span>
                   </TableCell>
                   <TableCell className="py-3 pr-6">
                     <div className="flex items-center justify-center">
-                      {/* <Button
-                        variant="outline"
-                        size="icon"
-                        className="h-8 w-8 border-orange-300 text-orange-400 hover:bg-orange-50 hover:text-orange-500 rounded-md"
-                      >
-                        <Eye size={14} />
-                      </Button> */}
-
-                      <AdvertisementManagementmodal />
+                      <AdvertisementManagementmodal  id = {campaign?._id}  />
                     </div>
                   </TableCell>
                 </TableRow>
@@ -266,11 +160,12 @@ export default function AdvertisementManagement() {
           </Table>
 
           {/* Pagination */}
-          <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100">
+          {(data?.length || 0) > PAGE_SIZE &&(
+            <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100">
             <span className="text-sm text-gray-400">
               Showing {(currentPage - 1) * PAGE_SIZE + 1} to{" "}
-              {Math.min(currentPage * PAGE_SIZE, allCampaigns.length)} of{" "}
-              {allCampaigns.length} results
+              {Math.min(currentPage * PAGE_SIZE, data?.length || 0)} of{" "}
+              {data?.length || 0} results
             </span>
 
             <div className="flex items-center gap-1">
@@ -303,7 +198,7 @@ export default function AdvertisementManagement() {
                   >
                     {page}
                   </button>
-                ),
+                )
               )}
 
               <button
@@ -317,6 +212,8 @@ export default function AdvertisementManagement() {
               </button>
             </div>
           </div>
+          )}
+          
         </div>
       </div>
     </div>

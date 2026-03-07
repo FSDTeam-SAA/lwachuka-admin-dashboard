@@ -199,9 +199,9 @@ export default function SecurityAuditList() {
               {(
                 [
                   "All Status",
-                  "Approved",
-                  "Pending",
-                  "Rejected",
+                  "approved",
+                  "pending",
+                  "rejected",
                 ] as FilterStatus[]
               ).map((s) => (
                 <SelectItem
