@@ -16,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { PropertyListingsModal } from "@/components/Dialogs/PropertyListingsModal";
+// import { PropertyListingsModal } from "@/components/Dialogs/PropertyListingsModal";
 import { DeleteModal } from "@/components/Dialogs/DeleteModal";
 
 type Status = "Approved" | "Pending" | "Rejected";
@@ -291,7 +291,7 @@ export default function SecurityAuditList() {
                         >
                           <Eye size={14} />
                         </Button> */}
-                          <PropertyListingsModal />
+                          {/* <PropertyListingsModal /> */}
                           {/* <Button
                             size="sm"
                             className="h-8 px-3 bg-red-500 hover:bg-red-600 text-white text-xs rounded-md"
