@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
+// import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -12,51 +12,48 @@ import {
 } from "@/components/ui/table";
 import Header from "@/components/share/Header";
 import { PaidListingsModal } from "@/components/Dialogs/PaidListingsModal";
-
-type Status = "Approved" | "Pending" | "Rejected";
+import { useQuery } from "@tanstack/react-query";
 
 interface Property {
-  id: number;
+  _id: string;
   title: string;
   location: string;
-  price: string;
-  type: string;
-  agent: string;
-  status: Status;
+  price: number;
+  listingType: string;
+  propertyType: string;
+  status: string;
+  createBy: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    profileImage?: string;
+  };
 }
-
-const allProperties: Property[] = [
-  { id: 1,  title: "Modern 3-Bedroom Apartment in Westland's", location: "Nairobi, Karen",    price: "KES 85.0M",  type: "Sale",       agent: "John Doe",    status: "Approved" },
-  { id: 2,  title: "Modern 3-Bedroom Apartment in Westland's", location: "Nairobi, Karen",    price: "KES 85.0M",  type: "Sale",       agent: "John Doe",    status: "Approved" },
-  { id: 3,  title: "Modern 3-Bedroom Apartment in Westland's", location: "Nairobi, Karen",    price: "KES 85.0M",  type: "Sale",       agent: "John Doe",    status: "Pending"  },
-  { id: 4,  title: "Modern 3-Bedroom Apartment in Westland's", location: "Nairobi, Karen",    price: "KES 85.0M",  type: "Sale",       agent: "John Doe",    status: "Approved" },
-  { id: 5,  title: "Modern 3-Bedroom Apartment in Westland's", location: "Nairobi, Karen",    price: "KES 85.0M",  type: "Sale",       agent: "John Doe",    status: "Approved" },
-  { id: 6,  title: "Modern 3-Bedroom Apartment in Westland's", location: "Nairobi, Karen",    price: "KES 85.0M",  type: "Sale",       agent: "John Doe",    status: "Rejected" },
-  { id: 7,  title: "Luxury Villa with Pool in Runda",          location: "Nairobi, Runda",    price: "KES 120.0M", type: "Sale",       agent: "Jane Smith",  status: "Approved" },
-  { id: 8,  title: "2-Bedroom Condo in Kilimani",              location: "Nairobi, Kilimani", price: "KES 45.0M",  type: "Rent",       agent: "Alice Brown", status: "Pending"  },
-  { id: 9,  title: "Commercial Space in Westlands",            location: "Nairobi, Westlands",price: "KES 200.0M", type: "Commercial", agent: "Bob Johnson", status: "Approved" },
-  { id: 10, title: "Studio Apartment in Upperhill",            location: "Nairobi, Upperhill",price: "KES 22.0M",  type: "Rent",       agent: "Charlie Lee", status: "Rejected" },
-  { id: 11, title: "4-Bedroom Townhouse in Lavington",         location: "Nairobi, Lavington",price: "KES 95.0M",  type: "Sale",       agent: "Diana Prince",status: "Approved" },
-  { id: 12, title: "Penthouse Suite in Parklands",             location: "Nairobi, Parklands",price: "KES 150.0M", type: "Sale",       agent: "Ethan Hunt",  status: "Pending"  },
-];
 
 const PAGE_SIZE = 5;
 
-const statusStyles: Record<Status, string> = {
-  Approved: "bg-green-50  text-green-600  border border-green-200",
-  Pending:  "bg-yellow-50 text-yellow-600 border border-yellow-200",
-  Rejected: "bg-red-50    text-red-400    border border-red-200",
+const statusStyles: Record<string, string> = {
+  approved: "bg-green-50  text-green-600  border border-green-200",
+  pending:  "bg-yellow-50 text-yellow-600 border border-yellow-200",
+  rejected: "bg-red-50    text-red-400    border border-red-200",
 };
 
 export default function PaidListings() {
   const [currentPage, setCurrentPage] = useState(1);
 
-  const totalPages = Math.ceil(allProperties.length / PAGE_SIZE);
+  // ─── Fetch data from API ──────────────────────────────
+  const { data, isLoading } = useQuery({
+    queryKey: ["paid-listing", currentPage],
+    queryFn: async () => {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/property/get-all-pad-property-listing?page=${currentPage}&limit=${PAGE_SIZE}`);
+      if (!res.ok) throw new Error("Failed to fetch properties");
+      return res.json();
+    },
+  });
 
-  const paginated = allProperties.slice(
-    (currentPage - 1) * PAGE_SIZE,
-    currentPage * PAGE_SIZE
-  );
+  const properties: Property[] = data?.data || [];
+  const total = data?.meta?.total || 0;
+  const totalPages = Math.ceil(total / PAGE_SIZE);
 
   const getPageNumbers = (): (number | "...")[] => {
     if (totalPages <= 5) return Array.from({ length: totalPages }, (_, i) => i + 1);
@@ -87,46 +84,41 @@ export default function PaidListings() {
                   <TableHead className="text-xs font-medium text-gray-500 py-3 text-center pr-6">Action</TableHead>
                 </TableRow>
               </TableHeader>
+
               <TableBody>
-                {paginated.length === 0 ? (
+                {isLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center py-10 text-sm text-gray-400">
+                      Loading properties...
+                    </TableCell>
+                  </TableRow>
+                ) : properties.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={7} className="text-center py-10 text-sm text-gray-400">
                       No properties found.
                     </TableCell>
                   </TableRow>
                 ) : (
-                  paginated.map((property) => (
+                  properties.map((property) => (
                     <TableRow
-                      key={property.id}
+                      key={property._id}
                       className="border-t border-gray-100 hover:bg-gray-50/50 transition-colors"
                     >
                       <TableCell className="py-4 px-6 text-sm font-medium text-[#1a2341] max-w-[240px]">
                         {property.title}
                       </TableCell>
                       <TableCell className="py-4 text-sm text-gray-500">{property.location}</TableCell>
-                      <TableCell className="py-4 text-sm text-gray-500">{property.price}</TableCell>
-                      <TableCell className="py-4 text-sm text-gray-500">{property.type}</TableCell>
-                      <TableCell className="py-4 text-sm text-gray-500">{property.agent}</TableCell>
+                      <TableCell className="py-4 text-sm text-gray-500">{property.price.toLocaleString("en-US", { style: "currency", currency: "KES" })}</TableCell>
+                      <TableCell className="py-4 text-sm text-gray-500">{property.listingType}</TableCell>
+                      <TableCell className="py-4 text-sm text-gray-500">{property.createBy.firstName} {property.createBy.lastName}</TableCell>
                       <TableCell className="py-4 text-center">
-                        <span className={`inline-block px-4 py-1 rounded-md text-xs font-medium min-w-[80px] ${statusStyles[property.status]}`}>
-                          {property.status}
+                        <span className={`inline-block px-4 py-1 rounded-md text-xs font-medium min-w-[80px] ${statusStyles[property.status] || ""}`}>
+                          {property.status.charAt(0).toUpperCase() + property.status.slice(1)}
                         </span>
                       </TableCell>
                       <TableCell className="py-4 pr-6">
                         <div className="flex items-center justify-center gap-2">
-                          <PaidListingsModal />
-                          <Button
-                            size="sm"
-                            className="h-8 px-3 bg-[#1a2341] hover:bg-[#2a3451] text-white text-xs rounded-md"
-                          >
-                            Approve
-                          </Button>
-                          <Button
-                            size="sm"
-                            className="h-8 px-3 bg-red-500 hover:bg-red-600 text-white text-xs rounded-md"
-                          >
-                            Block
-                          </Button>
+                          <PaidListingsModal propertyId={property._id} />
                         </div>
                       </TableCell>
                     </TableRow>
@@ -139,8 +131,7 @@ export default function PaidListings() {
             <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100">
               <span className="text-sm text-gray-400">
                 Showing {(currentPage - 1) * PAGE_SIZE + 1} to{" "}
-                {Math.min(currentPage * PAGE_SIZE, allProperties.length)} of{" "}
-                {allProperties.length} results
+                {Math.min(currentPage * PAGE_SIZE, total)} of {total} results
               </span>
 
               <div className="flex items-center gap-1">
