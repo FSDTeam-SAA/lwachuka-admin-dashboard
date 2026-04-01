@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { LayoutDashboard, Menu, X, UsersRound, UserCheck, Store, Building2, Megaphone, Banknote, BellDot, CreditCard, ChartColumn, Shield, Settings, Contact } from "lucide-react";
+import { LayoutDashboard, Menu, X, UsersRound, UserCheck, Store, Building2, Megaphone, Banknote, BellDot, CreditCard, ChartColumn, Shield, Settings, Contact, BookOpen } from "lucide-react";
 import { LogoutModal } from "../Dialogs/LogoutModal";
 import { useState } from "react";
 import Image from "next/image";
@@ -25,6 +25,7 @@ const navigation = [
   { name: "Analytics & Reports", href: "/analytics-reports", icon: ChartColumn },
   { name: "Security & Audit Logs", href: "/security-audit", icon: Shield },
   { name: "Contact Management", href: "/contact-management", icon: Contact },
+  { name: "FAQ", href: "/faq", icon: BookOpen },
   { name: "Settings", href: "/settings", icon: Settings },
 
 ];
